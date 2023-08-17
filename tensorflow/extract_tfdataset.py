@@ -7,6 +7,10 @@ import sys
 print(tf.__version__)
 print(tfds.__version__)
 
+# script will load Tensorflow Dataset and extract the images. It saves the image
+# to a folder using the class identifier. Normally this would be an integer.
+# If Scarab error view doesn't show the images, first extract the data and then
+# update the project dataset settings. 
 def main(args):
     
     if len(args) == 1:
