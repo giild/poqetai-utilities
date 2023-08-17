@@ -1,4 +1,4 @@
-name: tf211_bench
+name: tf211
 channels:
   - apple
 dependencies:

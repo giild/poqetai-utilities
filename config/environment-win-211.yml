@@ -1,4 +1,4 @@
-name: tf211_bench
+name: tf211
 dependencies:
   - python=3.9
   - pip:
