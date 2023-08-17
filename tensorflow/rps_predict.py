@@ -8,6 +8,9 @@ import psutil
 print(tf.__version__)
 labels = ['rock', 'paper', 'scissor']
 
+# Script is used to test prediction against an image
+# if you want to see the memory usage, uncomment the the lines in
+# loadModel function
 def main(): 
     args = sys.argv[0:]
     print(args)

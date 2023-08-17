@@ -17,10 +17,6 @@ print(tf.__version__)
 delta_threshold=0.0001
 
 # the basic idea is to take the weight corrections and apply them to the model.
-# Since the weight correction data uses multiple checkpoints to identify the
-# correct weight, the question is which of those corrections match a specific
-# class in the test dataset. Can we identify exactly which weights caused the
-# test regression and what can we learn from it?
 #  
 def main(args):
     if len(args) == 1:

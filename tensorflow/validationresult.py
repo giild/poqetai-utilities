@@ -1,6 +1,6 @@
 import tensorflow as tf
 
-# class encapsulates the prediction results and groups them into positive, negative, falsepositive and falsenegative
+# class encapsulates the prediction results and groups them into positive, falsepositive
 class ValidationResult:
     def __init__(self) -> None:
         self.checkpointfile = ''

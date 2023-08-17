@@ -8,7 +8,7 @@ import json
 import rps_epoch_error_report
 import csv
 
-# Script will iterate over h5 models and run error report for each
+# Script will load a HDF5 models and save a detailed report for the errors in each epoch
 def main():
     args = sys.argv[0:]
 

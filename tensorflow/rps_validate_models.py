@@ -7,7 +7,7 @@ import sys
 import json
 import rps_detailed_test
 
-# Script will iterate over the directory and convert all HDF5 checkpoint models to JSON format
+# Script will iterate over the directory and validate the HDF5 models with test dataset
 def main():
     args = sys.argv[0:]
 

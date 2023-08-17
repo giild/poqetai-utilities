@@ -9,6 +9,7 @@ import LayerActivation as la
 import time
 import JsonWriter
 
+# to be safe, we purposely set CUDA devices to -1 and force it to use CPU
 os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
 
 print(tf.__version__)
