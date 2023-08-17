@@ -1,0 +1,9 @@
+name: tensorflow_bench
+dependencies:
+  - python=3.10
+  - pip:
+      - tensorflow==2.9
+      - tensorflow_datasets
+      - keras_cv==0.3.5
+      - numpy
+      - marshmallow
