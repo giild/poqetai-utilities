@@ -7,7 +7,9 @@ import sys
 import json
 import coremltools
 
-# Script will iterate over the directory and convert all HDF5 checkpoint models to JSON format
+# Script will read HDF5 format and save it in CoreML format. You have to install
+# coremltools from Apple to make this work. The github repo has details about
+# the latest release https://github.com/apple/coremltools
 def main():
     args = sys.argv[0:]
 

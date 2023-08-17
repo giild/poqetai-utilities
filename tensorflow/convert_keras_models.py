@@ -8,6 +8,7 @@ import json
 import convert_keras_h5_to_json
 
 # Script will iterate over the directory and convert all HDF5 checkpoint models to JSON format
+# it uses convert_keras_h5_to_json to read the binary format and save it as JSON
 def main():
     args = sys.argv[0:]
 
