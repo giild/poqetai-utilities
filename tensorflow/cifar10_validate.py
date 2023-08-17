@@ -16,7 +16,8 @@ batchsize = 16
 
 # iterate over cifar10 test data and record the positive and false positive
 # it takes a checkpoint file, iterates over the TFDataset for cifar10.
-# it isn't generalized yet and  only works for Cifar10
+# it isn't generalized yet and only works for Cifar10. In the future, it 
+# will be replaced with a generalized script that can handle all TFDS datasets
 def main(): 
     args = sys.argv[0:]
     print(args)

@@ -7,7 +7,8 @@ import sys
 import json
 import cifar10_detailed_train
 
-# Script will iterate over the directory and convert all HDF5 checkpoint models to JSON format
+# Script will iterate over the directory, load the HDF5 models and validate the model
+# against Cifar10 training dataset. The files will have trainresult.json suffix
 def main():
     args = sys.argv[0:]
 

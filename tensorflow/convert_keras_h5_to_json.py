@@ -8,8 +8,10 @@ import json
 
 # print the version of tensorflow for sanity in case there's a version conflict
 print(tf.__version__)
+print(tfds.__version__)
 
 # main expects two arguments: the input h5 file and the file to save the json model
+# recommend saving the json version to a different folder
 def main():
     args = sys.argv[0:]
 

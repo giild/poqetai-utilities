@@ -7,7 +7,8 @@ import sys
 import json
 import cifar10_detailed_test
 
-# Script will iterate over the directory and convert all HDF5 checkpoint models to JSON format
+# Script will iterate over the directory, load the HDF5 models and validate with CIFAR10
+# test dataset. The result files have testresult.json suffix.
 def main():
     args = sys.argv[0:]
 

@@ -10,9 +10,10 @@ import csv
 
 print(tf.__version__)
 
-# iterate over rockpaperscissor test data and record the positive and false positive
-# it takes a checkpoint file, iterates over the TFDataset for rockpaperscissor.
-# it isn't generalized yet and  only works for rockpaperscissor
+# Script loads a HDF5 model and saves a detailed report for the test dataset
+# Normal accuracy loss validation doesn't provide enough detail to figure
+# out why a model isn't working "as expected". You should look at the test
+# errors to figure out if the problem is over or under fitting.
 def main(): 
     args = sys.argv[0:]
     print(args)
