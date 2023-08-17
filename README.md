@@ -6,6 +6,7 @@ Python is the most popular language for machine learning and data science. This 
 
 ## Supported Frameworks
 Tensorflow - supported
+
 pyTorch - planned for future release
 
 ## Requirements
