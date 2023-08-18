@@ -1,4 +1,5 @@
 # Scarab-utilities
+![Scarab Icon](https://github.com/giild/ScarabApp/blob/main/images/kscarab_bw_256_icon.png)
 Python utilities for ML frameworks
 
 ## Introduction
