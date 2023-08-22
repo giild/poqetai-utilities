@@ -14,8 +14,6 @@ import JsonWriter
 
 print(tf.__version__)
 
-delta_threshold=0.0001
-
 # the basic idea is to take the weight corrections and apply them to the model.
 # NOTE: depending on the parameter count, this process can take minutes. I've profiled
 #       the code and the slowness is mostly python. We may need to rewrite this in C
@@ -30,9 +28,6 @@ def main(args):
         print('Loading with args:  ', args)
         modelfile = args[1].replace("\\","/")
         weightregress = args[2]
-        if len(args) == 4:
-            delta_threshold = float(args[3])
-            print(delta_threshold)
         model = tf.keras.models.load_model(modelfile)
         corrections = json.load(open(weightregress))
         modified = modifyWeights(corrections, model)
