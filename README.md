@@ -13,9 +13,8 @@ pyTorch - planned for future release
 ## Requirements
 
 * Python 3.10
-* Tensorflow 2.11
+* Tensorflow 2.10
 * Tensorflow Datasets
 * Numpy
 * marshmallow
 
-## Scripts
