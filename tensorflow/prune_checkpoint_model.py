@@ -14,8 +14,6 @@ import JsonWriter
 
 print(tf.__version__)
 
-delta_threshold=0.0001
-
 # the basic idea is to take the weight corrections and apply them to the model.
 # prune sets the weight to Zero 
 # NOTE: depending on the parameter count, this process can take minutes. I've profiled
@@ -31,9 +29,6 @@ def main(args):
         print('Loading with args:  ', args)
         modelfile = args[1].replace("\\","/")
         weightregress = args[2]
-        if len(args) == 4:
-            delta_threshold = float(args[3])
-            print(delta_threshold)
         model = tf.keras.models.load_model(modelfile)
         corrections = json.load(open(weightregress))
         modified = modifyWeights(corrections, model)
@@ -72,7 +67,7 @@ def modifyWeights(wcorrections, model):
             if mode == 'all':
                 lweights[idx1,idx2] = 0.0
                 denseChangeCount += 1
-            elif mode == 'pos' and cweight > 0.0 and weightdelta > delta_threshold:
+            elif mode == 'pos' and cweight > 0.0:
                 lweights[idx1,idx2] = 0.0
                 denseChangeCount += 1
             elif mode == 'neg' and cweight < 0.0:
@@ -97,7 +92,7 @@ def modifyWeights(wcorrections, model):
             if conv2dmode == 'all':
                 lweights[idx1, idx2, idx3, idx4] = 0.0
                 convChangeCount += 1
-            elif conv2dmode == 'pos' and cweight > 0.0 and weightdelta > delta_threshold:
+            elif conv2dmode == 'pos' and cweight > 0.0:
                 lweights[idx1, idx2, idx3,  idx4] = 0.0
                 convChangeCount += 1
             elif conv2dmode == 'neg' and cweight < 0.0:
