@@ -17,8 +17,11 @@ print(tf.__version__)
 delta_threshold=0.0001
 
 # the basic idea is to take the weight corrections and apply them to the model.
-# 
 # prune sets the weight to Zero 
+# NOTE: depending on the parameter count, this process can take minutes. I've profiled
+#       the code and the slowness is mostly python. We may need to rewrite this in C
+#       to make it fast and not suck. Yes, python performance for IO/CPU intensive stuff
+#       sucks like a rotting corpse. For now, this works, but it needs to be rewritten.
 def main(args):
     if len(args) == 1:
         print('Example usage:')
