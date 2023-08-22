@@ -18,7 +18,7 @@ details:ad.Activationdetails = None
 
 def main(args):
     testImage = None
-    dataset = None
+    dataset = "None"
     imagename = ''
     modelfile = None
     resultfile = None
@@ -31,10 +31,10 @@ def main(args):
     else:
         print('Start the extract process from tensorflow dataset:')
         modelfile = args[1].replace("\\","/")
-        dsname = args[2]
-        imagename = args[3]
-        resultfile = args[4]
-        epoch = args[5]
+        dsname = "cifar10"
+        imagename = args[2]
+        resultfile = args[3]
+        epoch = args[4]
         dataset = loadDataset(dsname)
         print(' args: ', args)
         extimg = extractImage(dataset, imagename)
