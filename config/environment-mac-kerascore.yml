@@ -1,0 +1,22 @@
+name: tf2x
+channels:
+  - apple
+dependencies:
+  - python=3.10
+  - tensorflow-deps
+  - pip:
+      - tensorflow-macos==2.12
+      - tensorflow-metal
+      - tensorflow_datasets
+      - keras
+      - keras-core
+      - git+https://github.com/keras-team/keras-cv
+      - numpy
+      - pandas
+      - scikit-learn
+      - matplotlib
+      - marshmallow
+      - pycocotools
+      - coremltools
+      - jupyterlab
+      - ipywidgets
