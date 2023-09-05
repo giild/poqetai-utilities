@@ -13,7 +13,7 @@ import json
 # print the version of tensorflow for sanity in case there's a version conflict
 print(tf.__version__)
 
-# main expects two arguments: the input h5 file and the file to save the json model
+# main expects two arguments: the input keras file and the file to save the json model
 def main():
     args = sys.argv[0:]
 
