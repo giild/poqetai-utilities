@@ -1,5 +1,5 @@
 # pocketai-utilities
-![Scarab Icon](https://github.com/giild/ScarabApp/blob/main/images/kscarab_bw_256_icon.png)
+![pocketai Icon](https://github.com/giild/pocketaiApp/blob/main/images/pocketai_256.png)
 Python utilities for ML frameworks
 
 ## Introduction
