@@ -1,6 +1,7 @@
 # pocketai-utilities
 ![pocketai Icon](https://github.com/giild/pocketaiApp/blob/main/images/pocketai_256.png)
 
+![pocketai lite Icon](https://github.com/giild/pocketaiApp/blob/main/images/pocketai-lite_256.png)
 
 ## Introduction
 Python is the most popular language for machine learning and data science. This repository has a collection of utilities for pocketai. You may find them useful outside of pocketai. 
