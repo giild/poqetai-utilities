@@ -1,9 +1,9 @@
 # pocketai-utilities
-![Scarab Icon](https://github.com/giild/ScarabApp/blob/main/images/kscarab_bw_256_icon.png)
-Python utilities for ML frameworks
+![pocketai Icon](https://github.com/giild/pocketaiApp/blob/main/images/pocketai_256.png)
+
 
 ## Introduction
-Python is the most popular language for machine learning and data science. This repository has a collection of utilities for Scarab. You may find them useful outside of Scarab. 
+Python is the most popular language for machine learning and data science. This repository has a collection of utilities for pocketai. You may find them useful outside of pocketai. 
 
 ## Supported Frameworks
 Tensorflow - supported
