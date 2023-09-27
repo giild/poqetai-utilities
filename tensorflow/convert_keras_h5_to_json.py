@@ -16,7 +16,7 @@ def main():
     args = sys.argv[0:]
 
     if len(sys.argv) == 1:
-        print(' Example: input-model.h5 output_model.json ')
+        print(' Example: python convert_keras_h5_to_json.py input-model.h5 output_model.json ')
     else:
         input = args[1]
         outputfile = args[2]

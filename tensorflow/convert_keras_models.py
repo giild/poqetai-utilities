@@ -13,7 +13,7 @@ def main():
     args = sys.argv[0:]
 
     if len(sys.argv) == 1:
-        print(' Example: input_folder output_folder')
+        print(' Example: python convert_keras_models.py input_folder output_folder')
     else:
         input = args[1].replace("\\","/")
         outputdir = args[2].replace("\\", "/")
