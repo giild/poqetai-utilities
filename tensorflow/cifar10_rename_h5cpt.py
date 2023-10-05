@@ -79,7 +79,9 @@ def formatFilename(inputfilename, trainval, testval):
     trloss = f"{trainval[0]:.3f}"
     testacc = f"{testval[1]:.3f}"
     testloss = f"{testval[0]:.3f}"
-    newname = tokens[0] + "-" + tracc + "-" + trloss + "-" + testacc + "-" + testloss + ".h5"
+    prefix = tokens[0]
+    prefix = prefix.replace(".h5","")
+    newname = prefix + "-" + tracc + "-" + trloss + "-" + testacc + "-" + testloss + ".h5"
     return newname
     
 def renameCheckpointfile(inputname, newname):
