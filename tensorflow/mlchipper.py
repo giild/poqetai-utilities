@@ -10,8 +10,10 @@ import json
 print(tf.__version__)
 print(tfds.__version__)
 
-# main expects two arguments: the input h5 file and the file to save the json model
-# recommend saving the json version to a different folder
+# main expects two arguments: the input h5 file, temp directory, epoch string
+# Wood chippers take a tree and cut it up into little pices. ML Chipper takes a
+# ML model and chunks it up into smaller pieces. This makes it easier to load
+# parts of the model and reduce memory utilization
 def main():
     args = sys.argv[0:]
 
@@ -25,7 +27,7 @@ def main():
             os.makedirs(tempdir)
         run(input, tempdir, epochstr)
 
-# Run will use Keras to load the model and call convertToJson and save the JSON
+# Run will use Keras to load the model and break it up by layers
 def run(inputfile, tempdir, epochstr):
     chipdir = tempdir + '/epoch.' + epochstr
     if os.path.exists(chipdir) == False:
@@ -33,12 +35,12 @@ def run(inputfile, tempdir, epochstr):
     inputmodel = tf.keras.models.load_model(inputfile)
     print(inputmodel.summary())
     start_time = time.time()
-    convertToJson(inputmodel, chipdir)
+    chunkModel(inputmodel, chipdir)
     end_time = time.time()
     print(' - convert time: ', (end_time - start_time), ' ms')
     print(' - Saved model: ', tempdir)
 
-def convertToJson(model: keras.Sequential, tempdir):
+def chunkModel(model: keras.Sequential, tempdir):
     modeltype = "keras-weights"
     # iterate over the layers
     for i in range(len(model.layers)):
