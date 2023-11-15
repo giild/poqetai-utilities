@@ -1,4 +1,4 @@
-# pocketai-utilities
+# poqet ai-utilities
 ![pocketai Icon](https://github.com/giild/pocketaiApp/blob/main/images/pocketai_256.png)
 ![pocketai lite Icon](https://github.com/giild/pocketaiApp/blob/main/images/pocketai-lite_256.png)
 
