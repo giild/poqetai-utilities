@@ -8,7 +8,7 @@ dependencies:
       - tensorflow-macos==2.11
       - tensorflow_datasets
       - keras_cv==0.4.2
-      - numpy
+      - numpy==1.24.3
       - marshmallow
       - pycocotools
       - coremltools
