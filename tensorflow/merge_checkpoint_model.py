@@ -36,7 +36,7 @@ def main(args):
         else:
             outputname = modelfile.replace(".h5","_modified.h5")
         if len(args) == 4:
-            delta_threshold = float(args[3])
+            delta_threshold = float(args[4])
         model = tf.keras.models.load_model(modelfile)
         corrections = json.load(open(weightchangefile))
         modified = modifyWeights(corrections, model)
