@@ -14,6 +14,8 @@ import JsonWriter
 
 print(tf.__version__)
 
+delta_threshold = 0.0001
+
 # the basic idea is to take the weight corrections and apply them to the model.
 # NOTE: depending on the parameter count, this process can take minutes. I've profiled
 #       the code and the slowness is mostly python. We may need to rewrite this in C
@@ -22,17 +24,24 @@ print(tf.__version__)
 def main(args):
     if len(args) == 1:
         print('Example usage:')
-        print('          python correct_checkpoint_model.py ./checkpoint_model.hdf5 corrections.json')
+        print('          python correct_checkpoint_model.py ./checkpoint_model.hdf5 corrections.json new_version.hdf5')
     else:
         # load all of the files
         print('Loading with args:  ', args)
+        outputname = 'modified_checkpoint_model.h5'
         modelfile = args[1].replace("\\","/")
-        weightregress = args[2]
+        weightchangefile = args[2]
+        if len(args) >= 3:
+            outputname = args[3]
+        else:
+            outputname = modelfile.replace(".h5","_modified.h5")
+        if len(args) == 4:
+            delta_threshold = float(args[3])
         model = tf.keras.models.load_model(modelfile)
-        corrections = json.load(open(weightregress))
+        corrections = json.load(open(weightchangefile))
         modified = modifyWeights(corrections, model)
         # save the model with a new filename
-        modified.save('merged_checkpoint_model.h5')
+        saveUpdatedModel(modified, outputname)
 
 def modifyWeights(wcorrections, model):
     mode = 'all'
@@ -112,8 +121,9 @@ def modifyWeights(wcorrections, model):
 
     return model
 
-def saveUpdatedModel(model):
-    print('  - start saving updated model')
+def saveUpdatedModel(modified, outputfile):
+    print(f"- start saving updated model {outputfile}")
+    modified.save(outputfile)
 
 # this is the recommended approach of handling main function
 if __name__ == "__main__":
