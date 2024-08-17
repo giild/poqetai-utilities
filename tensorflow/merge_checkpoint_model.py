@@ -31,12 +31,13 @@ def main(args):
         outputname = 'modified_checkpoint_model.h5'
         modelfile = args[1].replace("\\","/")
         weightchangefile = args[2]
-        if len(args) >= 3:
+        if len(args) >= 4:
             outputname = args[3]
         else:
             outputname = modelfile.replace(".h5","_modified.h5")
-        if len(args) == 4:
+        if len(args) == 5:
             delta_threshold = float(args[4])
+        print(f"model={modelfile} / changes={weightchangefile} / output={outputname}")
         model = tf.keras.models.load_model(modelfile)
         corrections = json.load(open(weightchangefile))
         modified = modifyWeights(corrections, model)
@@ -48,11 +49,12 @@ def modifyWeights(wcorrections, model):
     conv2dmode = 'all'
     mlayers = model.layers
     # iterate over the corrections and apply it to the model
-    crarray = wcorrections['corrections']
+    crarray = wcorrections['changes']
     clen = len(crarray)
     convChangeCount = 0
     denseChangeCount=0
     starttime = time.time()
+    print(f"  ----- change count={clen}")
     for c in range(clen):
         # lookup the layer and apply the change
         crt = crarray[c]
@@ -65,7 +67,7 @@ def modifyWeights(wcorrections, model):
         # get the layer by the layer index
         layr = mlayers[layeridx]
         #print(' ------ the layer weights: ', layr.weights)
-        if isinstance(layr, tf.keras.layers.Dense) and wttype == "p":
+        if isinstance(layr, tf.keras.layers.Dense) and wttype == "Dense":
             lweights = layr.weights[0].numpy()
             bweights = layr.weights[1].numpy()
             idx1 = int(wtidxs[1])
@@ -85,7 +87,7 @@ def modifyWeights(wcorrections, model):
             # to change the weights of a layer, you have to call set_weights() 
             # https://github.com/keras-team/keras/blob/master/keras/engine/base_layer.py
             layr.set_weights(np.array([lweights, bweights], dtype=object))
-        elif isinstance(layr, tf.keras.layers.Conv2D) and wttype == "p":
+        elif isinstance(layr, tf.keras.layers.Conv2D) and wttype == "Conv2D":
             # apply changes to Conv2D layer
             lweights = layr.weights[0].numpy()
             bweights = []
