@@ -2,15 +2,15 @@ import time
 import os
 import sys
 import json
-import convert_safetensor_to_json
+import convert_torch_to_json
 
 # Script will iterate over the directory and convert all HDF5 checkpoint models to JSON format
 # it uses convert_keras_h5_to_json to read the binary format and save it as JSON
 def main():
     args = sys.argv[0:]
-    converter = convert_safetensor_to_json.SafetensorConversion()
+    converter = convert_torch_to_json.TorchConversion()
     if len(sys.argv) == 1:
-        print(' Example: python convert_safetensor_models.py input_folder output_folder modelname')
+        print(' Example: python convert_torch_models.py input_folder output_folder modelname')
     else:
         input = args[1].replace("\\","/")
         outputdir = args[2].replace("\\", "/")
@@ -21,9 +21,9 @@ def main():
         filelist = os.listdir(input)
         filelist = sorted(filelist)
         for f in filelist:
-            if f.endswith('safetensors'):
+            if f.endswith('pth'):
                 inputfile = input + '/' + f
-                outputfile = outputdir + '/' + f.replace('safetensors','json')
+                outputfile = outputdir + '/' + f.replace('pth','json')
                 converter.run(modelname, inputfile, outputfile)
 
 # this is the recommended approach of handling main function
