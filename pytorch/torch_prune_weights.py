@@ -1,9 +1,12 @@
 import json
 import torch
-from safetensors.torch import load_file, save_file
 import numpy as np
 import argparse
 from pathlib import Path
+
+def loadTorchToDict(filename):
+    modeldata = torch.load(filename, weights_only=False)
+    return modeldata
 
 def load_json_data(json_path):
     """Load the JSON file containing unchanged weight information."""
@@ -34,7 +37,7 @@ def zero_unchanged_weights(checkpoint_path, json_data, output_path=None):
     print(f"Loading checkpoint from: {checkpoint_path}")
     
     # Load the checkpoint
-    state_dict = load_file(checkpoint_path)
+    state_dict = loadTorchToDict(checkpoint_path)
     
     # Get unchanged weights information
     layer_unchanged_weights = json_data.get('layer_unchanged_weights', {})
@@ -92,7 +95,7 @@ def zero_unchanged_weights(checkpoint_path, json_data, output_path=None):
     # Save modified checkpoint if output path is provided
     if output_path:
         print(f"Saving modified checkpoint to: {output_path}")
-        save_file(state_dict, output_path)
+        torch.save(state_dict, output_path)
     
     return state_dict
 
@@ -101,6 +104,10 @@ def main():
     parser.add_argument('json_file', type=str, help='Path to JSON file with unchanged weight info')
     parser.add_argument('--checkpoint', type=str, help='Path to checkpoint file (overrides JSON)')
     parser.add_argument('--output', type=str, help='Output path for modified checkpoint')
+    parser.add_argument('--use-checkpoint1', action='store_true', 
+                       help='Use checkpoint1_path from JSON (default)')
+    parser.add_argument('--use-checkpoint2', action='store_true', 
+                       help='Use checkpoint2_path from JSON')
     
     args = parser.parse_args()
     
