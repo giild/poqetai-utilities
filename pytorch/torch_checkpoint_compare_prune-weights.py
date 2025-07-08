@@ -264,7 +264,7 @@ def calculate_summary_stats(unchanged_data: Dict[str, Any]) -> Dict[str, Any]:
     return summary
 
 
-def run(checkpoint1_path: str, checkpoint2_path: str, model_name: str, outputdir:str) -> None:
+def run(checkpoint1_path: str, checkpoint2_path: str, outputdir: str, outputfile:str) -> None:
     """
     Main function to compare two checkpoints and identify unchanged weights.
     
@@ -292,7 +292,7 @@ def run(checkpoint1_path: str, checkpoint2_path: str, model_name: str, outputdir
     
     # Prepare output data
     output_data = {
-        "model_name": model_name,
+        "model_name": outputfile,
         "checkpoint1_path": checkpoint1_path,
         "checkpoint2_path": checkpoint2_path,
         "summary": summary,
@@ -300,7 +300,7 @@ def run(checkpoint1_path: str, checkpoint2_path: str, model_name: str, outputdir
     }
     
     # Save to JSON file
-    output_filename = f"{outputdir}/{model_name}_unchanged_weights_analysis.json"
+    output_filename = f"{outputdir}/{outputfile}_prune_weights.json"
     print(f"Saving results to: {output_filename}")
     
     with open(output_filename, 'w') as f:
@@ -343,16 +343,16 @@ def main():
         help="Directory to save the output JSON file"
     )
     parser.add_argument(
-        "model_name", 
+        "outputfile", 
         type=str, 
-        help="Name of the model (used for output file naming)"
+        help="filename to save the file)"
     )
     
     args = parser.parse_args()
     
     try:
         start = time.time()
-        run(args.checkpoint1, args.checkpoint2, args.model_name, args.outputdir)
+        run(args.checkpoint1, args.checkpoint2, args.outputdir, args.outputfile)
         end = time.time()
         print(f"Total time taken: {end - start:.2f} seconds")
     except Exception as e:

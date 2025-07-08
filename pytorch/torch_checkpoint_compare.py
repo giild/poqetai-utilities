@@ -268,14 +268,14 @@ def calculate_summary_stats(changes: Dict[str, Any]) -> Dict[str, Any]:
     return summary
 
 
-def run(checkpoint1_path: str, checkpoint2_path: str, model_name: str) -> None:
+def run(checkpoint1_path: str, checkpoint2_path: str, outputdir:str, outputfile: str) -> None:
     """
     Main function to compare two checkpoints and save results.
     
     Args:
         checkpoint1_path: Path to first checkpoint file
         checkpoint2_path: Path to second checkpoint file
-        model_name: Name of the model for output file naming
+        outputfile: Name of the model for output file naming
     """
     print(f"Loading checkpoint 1: {checkpoint1_path}")
     checkpoint1 = loadTorchToDict(checkpoint1_path)
@@ -296,7 +296,7 @@ def run(checkpoint1_path: str, checkpoint2_path: str, model_name: str) -> None:
     
     # Prepare output data
     output_data = {
-        "model_name": model_name,
+        "model_name": outputfile,
         "checkpoint1_path": checkpoint1_path,
         "checkpoint2_path": checkpoint2_path,
         "summary": summary,
@@ -304,7 +304,7 @@ def run(checkpoint1_path: str, checkpoint2_path: str, model_name: str) -> None:
     }
     
     # Save to JSON file
-    output_filename = f"{model_name}_checkpoint_comparison.json"
+    output_filename = f"{outputdir}/{outputfile}_checkpoint_comparison.json"
     print(f"Saving results to: {output_filename}")
     
     with open(output_filename, 'w') as f:
@@ -340,16 +340,21 @@ def main():
         help="Path to the second checkpoint file (.safetensors)"
     )
     parser.add_argument(
-        "model_name", 
+        "outputdir", 
         type=str, 
-        help="Name of the model (used for output file naming)"
+        help="directory to save the results)"
+    )
+    parser.add_argument(
+        "outputfile", 
+        type=str, 
+        help="Output file name to save the results)"
     )
     
     args = parser.parse_args()
     
     try:
         start = time.time()
-        run(args.checkpoint1, args.checkpoint2, args.model_name)
+        run(args.checkpoint1, args.checkpoint2, args.outputdir, args.outputfile)
         end = time.time()
         print(f"Total time taken: {end - start:.2f} seconds")
     except Exception as e:
