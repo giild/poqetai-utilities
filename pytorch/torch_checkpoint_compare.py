@@ -233,7 +233,7 @@ def calculate_weight_changes(checkpoint1: Dict[str, torch.Tensor],
             "total_weights": int(tensor1.numel()),
             "weights": weights_data
         }
-        
+        print(f"Layer {key}: {layer_data}")
         changes[key] = layer_data
     
     return changes
