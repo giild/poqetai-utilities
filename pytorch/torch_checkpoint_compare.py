@@ -63,7 +63,7 @@ def sort_keys(keys: list) -> list:
     return sorted(keys, key=sort_key)
 
 def loadTorchToDict(filename):
-    modeldata = torch.load(filename, weights_only=False)
+    modeldata = torch.load(filename, weights_only=False, map_location='cpu')
     return modeldata
 
 def is_attention_layer(layer_name: str) -> bool:
@@ -233,7 +233,7 @@ def calculate_weight_changes(checkpoint1: Dict[str, torch.Tensor],
             "total_weights": int(tensor1.numel()),
             "weights": weights_data
         }
-        print(f"Layer {key}: {layer_data}")
+        print(f"Layer {key}: {num_changed} weights changed, {num_unchanged} unchanged")
         changes[key] = layer_data
     
     return changes
