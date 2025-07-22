@@ -28,8 +28,8 @@ def extract_layer_number(key: str) -> tuple:
     """
     # Look for patterns like "layer.12", "layers.5", "transformer.h.8", etc.
     patterns = [
-        r'(.*)layer\.(\d+)(.*)',
-        r'(.*)layers\.(\d+)(.*)',
+        r'(.*?\.(?:layer?|blocks?|h)\.?)(\d+)(\..*|$)',
+        r'(.*?\.(?:layers?|blocks?|h)\.?)(\d+)(\..*|$)',
         r'(.*)transformer\.h\.(\d+)(.*)',
         r'(.*)block\.(\d+)(.*)',
         r'(.*)encoder\.layer\.(\d+)(.*)',
@@ -39,8 +39,10 @@ def extract_layer_number(key: str) -> tuple:
     for pattern in patterns:
         match = re.match(pattern, key, re.IGNORECASE)
         if match:
-            prefix, layer_num, suffix = match.groups()
-            return (prefix, int(layer_num), suffix)
+            prefix = match.group(1)
+            layer_num = int(match.group(2))
+            suffix = match.group(3)
+            return (prefix, layer_num, suffix)
     
     # If no layer number found, return the key as is for alphabetical sorting
     return (key, -1, "")
@@ -81,6 +83,7 @@ def load_checkpoint(checkpoint_path: str) -> Dict[str, torch.Tensor]:
     
     # Sort the keys
     sorted_keys = sort_keys(all_keys)
+    #print(f"{sorted_keys} keys in checkpoint: {checkpoint_path}")
     
     # Load tensors in sorted order
     tensors = {}
@@ -226,7 +229,7 @@ def calculate_weight_changes(checkpoint1: Dict[str, torch.Tensor],
     if keys_only_in_cp2:
         print(f"Keys only in checkpoint 2: {list(keys_only_in_cp2)}")
     
-    for key in common_keys:
+    for key in checkpoint1.keys():
         tensor1 = checkpoint1[key]
         tensor2 = checkpoint2[key]
         

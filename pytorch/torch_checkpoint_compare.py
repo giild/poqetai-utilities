@@ -37,6 +37,7 @@ def extract_layer_number(key: str) -> tuple:
     ]
     
     for pattern in patterns:
+        key = key.replace("_", ".")  # Normalize keys with underscores
         match = re.match(pattern, key, re.IGNORECASE)
         if match:
             prefix, layer_num, suffix = match.groups()
@@ -202,7 +203,7 @@ def calculate_weight_changes(checkpoint1: Dict[str, torch.Tensor],
     if keys_only_in_cp2:
         print(f"Keys only in checkpoint 2: {list(keys_only_in_cp2)}")
     
-    for key in common_keys:
+    for key in checkpoint1.keys():
         tensor1 = checkpoint1[key]
         tensor2 = checkpoint2[key]
         
