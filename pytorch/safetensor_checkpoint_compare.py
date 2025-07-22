@@ -247,6 +247,9 @@ def calculate_weight_changes(checkpoint1: Dict[str, torch.Tensor],
         # Count changes
         num_changed = int(torch.sum(diff != 0).item())
         num_unchanged = int(torch.sum(diff == 0).item())
+        avg_delta = float(torch.mean(torch.abs(diff)).item())
+        max_delta = float(torch.max(torch.abs(diff)).item())
+        min_delta = float(torch.min(torch.abs(diff)).item())
         
         layer_data = {
             "shape": list(tensor1.shape),
@@ -254,10 +257,13 @@ def calculate_weight_changes(checkpoint1: Dict[str, torch.Tensor],
             "layer_type": "attention" if is_attention else "standard",
             "weights_changed": num_changed,
             "weights_unchanged": num_unchanged,
+            "avg_delta": avg_delta,
+            "max_delta": max_delta,
+            "min_delta": min_delta,
             "total_weights": int(tensor1.numel()),
             "weights": weights_data
         }
-        
+        print(f"Layer {key}: {num_changed} weights changed, {num_unchanged} unchanged, {avg_delta} average change, {max_delta} max change, {min_delta} min change")
         changes[key] = layer_data
     
     return changes
@@ -292,7 +298,7 @@ def calculate_summary_stats(changes: Dict[str, Any]) -> Dict[str, Any]:
     return summary
 
 
-def run(checkpoint1_path: str, checkpoint2_path: str, model_name: str) -> None:
+def run(checkpoint1_path: str, checkpoint2_path: str, outputdir:str, outputfile: str) -> None:
     """
     Main function to compare two checkpoints and save results.
     
@@ -320,7 +326,7 @@ def run(checkpoint1_path: str, checkpoint2_path: str, model_name: str) -> None:
     
     # Prepare output data
     output_data = {
-        "model_name": model_name,
+        "model_name": outputfile,
         "checkpoint1_path": checkpoint1_path,
         "checkpoint2_path": checkpoint2_path,
         "summary": summary,
@@ -328,7 +334,7 @@ def run(checkpoint1_path: str, checkpoint2_path: str, model_name: str) -> None:
     }
     
     # Save to JSON file
-    output_filename = f"{model_name}_checkpoint_comparison.json"
+    output_filename = f"{outputdir}/{outputfile}_checkpoint_comparison.json"
     print(f"Saving results to: {output_filename}")
     
     with open(output_filename, 'w') as f:
@@ -364,16 +370,21 @@ def main():
         help="Path to the second checkpoint file (.safetensors)"
     )
     parser.add_argument(
-        "model_name", 
+        "outputdir", 
         type=str, 
-        help="Name of the model (used for output file naming)"
+        help="directory to save the results)"
+    )
+    parser.add_argument(
+        "outputfile", 
+        type=str, 
+        help="Output file name to save the results)"
     )
     
     args = parser.parse_args()
     
     try:
         start = time.time()
-        run(args.checkpoint1, args.checkpoint2, args.model_name)
+        run(args.checkpoint1, args.checkpoint2, args.outputdir, args.outputfile)
         end = time.time()
         print(f"Total time taken: {end - start:.2f} seconds")
     except Exception as e:
