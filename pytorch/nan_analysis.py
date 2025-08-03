@@ -277,13 +277,14 @@ def validate_attention_layers(checkpoint_file: str, output_dir: str, output_file
                 print(f"      Has nan: {overflow_info['has_nan']} (count: {overflow_info['nan_count']})")
                 print(f"      Has large values: {overflow_info['has_large_values']} (count: {overflow_info['large_values_count']})")
                 rsjson = {"layer": param_name,
+                          "shape": tensor.shape,
                           "overflow":True,"max abs value":overflow_info['max_abs_value'],
                           "inf locations": overflow_info.get('inf_locations', []),
                           "nan locations": overflow_info.get('nan_locations', []),
                           "large value samples": overflow_info.get('large_value_samples', [])}
                 resultarray.append(rsjson)
             else:
-                rsjson = {"layer":param_name,"overflow":False,"max abs value":overflow_info['max_abs_value']}
+                rsjson = {"layer":param_name,"shape":tensor.shape,"overflow":False,"max abs value":overflow_info['max_abs_value']}
                 print(f"  ✅ No overflow risk detected (max abs value: {overflow_info['max_abs_value']})")
                 resultarray.append(rsjson)
         
