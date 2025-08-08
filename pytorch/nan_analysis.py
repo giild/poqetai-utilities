@@ -138,24 +138,29 @@ def check_tensor_overflow(tensor: torch.Tensor, threshold: float = 1e30) -> Dict
         tensor_float = tensor
     
     # Check for various overflow conditions
+    has_warn_val = False
     has_inf = torch.isinf(tensor_float).any().item()
     has_nan = torch.isnan(tensor_float).any().item()
     
     # Check for very large values that might cause overflow in operations
     abs_tensor = torch.abs(tensor_float)
     max_val = abs_tensor.max().item()
+    std_val = tensor_float.std().item()
     has_large_values = (abs_tensor > threshold).any().item()
     
     # Count problematic values
     inf_count = torch.isinf(tensor_float).sum().item()
     nan_count = torch.isnan(tensor_float).sum().item()
     large_count = (abs_tensor > threshold).sum().item()
+    if max_val > 100 or std_val > 10:
+        has_warn_val = True
     
     return {
         'has_overflow_risk': has_inf or has_nan or has_large_values,
         'has_inf': has_inf,
         'has_nan': has_nan,
         'has_large_values': has_large_values,
+        'has_warn_values': has_warn_val,
         'max_abs_value': max_val,
         'inf_count': inf_count,
         'nan_count': nan_count,
@@ -269,7 +274,7 @@ def validate_attention_layers(checkpoint_file: str, output_dir: str, output_file
                             'value': val.item()
                         }
                         for indices, val in zip(zip(*large_indices), large_values)
-                    ][:50]  # Limit to first 50 samples
+                    ][:200]  # Limit to first 200 samples
                 
                 print(f"  ⚠️  OVERFLOW RISK DETECTED!")
                 print(f"      Max absolute value: {overflow_info['max_abs_value']:.2e}")
@@ -294,8 +299,9 @@ def validate_attention_layers(checkpoint_file: str, output_dir: str, output_file
             'total_attention_parameters': len(attention_weights),
             'parameters_with_overflow_risk': total_issues,
             'analysis_threshold': threshold,
+            'total_issues': total_issues,
             'overflow_details': overflow_issues,
-            'results': resultarray
+            'summary_all': resultarray
         }
         
         # Save results to JSON

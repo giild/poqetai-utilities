@@ -1,0 +1,5 @@
+**/*.h5
+**/*.pth
+**/*.safetensor
+**/*.csv
+**/*.json
