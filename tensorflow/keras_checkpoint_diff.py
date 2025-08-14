@@ -97,7 +97,8 @@ def compare(diff, model1, model2):
  the last is the output filter. Note the kernel may be different, so the function has to look
  at the shape.
 
- TODO - for now it's a bunch of nested for loops. Needs to be refactored and clean it up
+ Note: python is slow for calculating diff. Poqetai uses Swift language which is more efficient 
+        and faster. The python version is for simple testing on linux or windows.
 """
 def diffConv2D(diff, index, weights1, weights2):
     if index > 0:
@@ -288,6 +289,14 @@ def diffDense(diff, index, layer1, layer2):
     #print('  dense delta: ', len(denseDelta.deltaarray), ' diffcount: ', denseDelta.diffcount)
 
 def diffDropout(diff, index, layer1, layer2):
+    """dropout layer does not have weights, so we don't need to calculate diff.
+
+    Args:
+        diff (_type_): _description_
+        index (_type_): _description_
+        layer1 (_type_): _description_
+        layer2 (_type_): _description_
+    """
     print(' - calculate diff for dropout')
     print(' layer name: ', layer1.name)
 

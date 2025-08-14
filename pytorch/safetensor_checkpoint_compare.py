@@ -250,9 +250,6 @@ def calculate_weight_changes(checkpoint1: Dict[str, torch.Tensor],
         # Count changes
         num_changed = int(torch.sum(diff != 0).item())
         num_unchanged = int(torch.sum(diff == 0).item())
-        avg_delta = float(torch.mean(torch.abs(diff)).item())
-        max_delta = float(torch.max(torch.abs(diff)).item())
-        min_delta = float(torch.min(torch.abs(diff)).item())
         
         layer_data = {
             "shape": list(tensor1.shape),
@@ -260,13 +257,10 @@ def calculate_weight_changes(checkpoint1: Dict[str, torch.Tensor],
             "layer_type": "attention" if is_attention else "standard",
             "weights_changed": num_changed,
             "weights_unchanged": num_unchanged,
-            "avg_delta": avg_delta,
-            "max_delta": max_delta,
-            "min_delta": min_delta,
             "total_weights": int(tensor1.numel()),
             "weights": weights_data
         }
-        print(f"Layer {key}: {num_changed} weights changed, {num_unchanged} unchanged, {avg_delta} average change, {max_delta} max change, {min_delta} min change")
+        print(f"Layer {key}: {num_changed} weights changed, {num_unchanged} unchanged")
         changes[key] = layer_data
     
     return changes
