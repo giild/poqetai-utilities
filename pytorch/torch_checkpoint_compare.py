@@ -10,7 +10,7 @@ import os
 import re
 import sys
 from pathlib import Path
-from typing import Dict, Any, Tuple
+from typing import Dict, Any, Tuple, Optional
 
 import numpy as np
 from safetensors import safe_open
@@ -85,8 +85,96 @@ def is_attention_layer(layer_name: str) -> bool:
     layer_name_lower = layer_name.lower()
     return any(keyword in layer_name_lower for keyword in attention_keywords)
 
+def is_fused_attention(layer_name: str) -> bool:
+    """
+    Check if the layer is using fused attention weights.
+    
+    Args:
+        layer_name: Name of the layer
+        
+    Returns:
+        True if it uses fused attention weights, False otherwise
+    """
+    return 'qkv' in layer_name.lower()
 
-def create_weight_structure(tensor1: torch.Tensor, tensor2: torch.Tensor, is_attention: bool) -> list:
+def unfuse_qkv_weights(fused_weight: torch.Tensor, fused_bias: Optional[torch.Tensor] = None,
+    embed_dim: Optional[int] = None, num_heads: Optional[int] = None) -> Dict[str, torch.Tensor]:
+    """
+    Unfuse the fused QKV weights from a transformer attention layer.
+    
+    Args:
+        fused_weight: Fused weight tensor of shape (3 * embed_dim, embed_dim)
+                     where the first dimension contains Q, K, V weights concatenated
+        fused_bias: Optional fused bias tensor of shape (3 * embed_dim,)
+        embed_dim: Embedding dimension. If None, inferred from weight shape
+        num_heads: Number of attention heads (for validation)
+        
+    Returns:
+        Dictionary containing:
+        - 'query_weight': Query projection weights
+        - 'key_weight': Key projection weights  
+        - 'value_weight': Value projection weights
+        - 'query_bias': Query bias (if fused_bias provided)
+        - 'key_bias': Key bias (if fused_bias provided)
+        - 'value_bias': Value bias (if fused_bias provided)
+    """
+    
+    # Validate input shapes
+    if len(fused_weight.shape) != 2:
+        raise ValueError(f"Expected 2D weight tensor, got shape {fused_weight.shape}")
+    
+    # Infer embed_dim if not provided
+    if embed_dim is None:
+        embed_dim = fused_weight.shape[1]
+    
+    # Validate that the first dimension is 3 * embed_dim
+    expected_fused_dim = 3 * embed_dim
+    if fused_weight.shape[0] != expected_fused_dim:
+        raise ValueError(
+            f"Expected fused weight first dimension to be {expected_fused_dim} "
+            f"(3 * embed_dim={embed_dim}), got {fused_weight.shape[0]}"
+        )
+    
+    # Validate bias if provided
+    if fused_bias is not None:
+        if len(fused_bias.shape) != 1:
+            raise ValueError(f"Expected 1D bias tensor, got shape {fused_bias.shape}")
+        if fused_bias.shape[0] != expected_fused_dim:
+            raise ValueError(
+                f"Expected fused bias dimension to be {expected_fused_dim}, "
+                f"got {fused_bias.shape[0]}"
+            )
+    
+    # Validate num_heads if provided
+    if num_heads is not None and embed_dim % num_heads != 0:
+        raise ValueError(f"embed_dim ({embed_dim}) must be divisible by num_heads ({num_heads})")
+    
+    # Split the fused weights
+    query_weight = fused_weight[0:embed_dim, :]
+    key_weight = fused_weight[embed_dim:2*embed_dim, :]
+    value_weight = fused_weight[2*embed_dim:3*embed_dim, :]
+    
+    result = {
+        'query_weight': query_weight,
+        'key_weight': key_weight,
+        'value_weight': value_weight
+    }
+    
+    # Split the fused bias if provided
+    if fused_bias is not None:
+        query_bias = fused_bias[0:embed_dim]
+        key_bias = fused_bias[embed_dim:2*embed_dim]
+        value_bias = fused_bias[2*embed_dim:3*embed_dim]
+        
+        result.update({
+            'query_bias': query_bias,
+            'key_bias': key_bias,
+            'value_bias': value_bias
+        })
+    
+    return result
+    
+def create_weight_structure(tensor1: torch.Tensor, tensor2: torch.Tensor, is_attention: bool, is_fused:bool) -> list:
     """
     Create weight structure based on tensor dimensions and layer type.
     
@@ -98,85 +186,126 @@ def create_weight_structure(tensor1: torch.Tensor, tensor2: torch.Tensor, is_att
     Returns:
         List of weight comparison data maintaining tensor structure
     """
-    diff = tensor2 - tensor1
-    
-    if len(tensor1.shape) == 1:  # 1D tensor (bias)
+    if is_attention and is_fused:
+        print(f" We need to check if the attention is using fused attention weights")
+        unfuseddict1 = unfuse_qkv_weights(tensor1)
+        unfuseddict2 = unfuse_qkv_weights(tensor2)
+        query1 = unfuseddict1['query_weight']
+        key1 = unfuseddict1['key_weight']
+        value1 = unfuseddict1['value_weight']
+        query2 = unfuseddict2['query_weight']
+        key2 = unfuseddict2['key_weight']
+        value2 = unfuseddict2['value_weight']
+        querydiff = query2 - query1
+        keydiff = key2 - key1
+        valuediff = value2 - value1
         return [
             {
                 "index": [i],
-                "left_value": float(tensor1[i].item()),
-                "right_value": float(tensor2[i].item()),
-                "delta": float(diff[i].item())
+                "left_value": float(query1[i].item()),
+                "right_value": float(query2[i].item()),
+                "delta": float(querydiff[i].item()),
+                "type": "query"
             }
-            for i in range(tensor1.shape[0])
+            for i in range(query1.shape[0])
+        ] + [
+            {
+                "index": [i],
+                "left_value": float(key1[i].item()),
+                "right_value": float(key2[i].item()),
+                "delta": float(keydiff[i].item()),
+                "type": "key"
+            }
+            for i in range(key1.shape[0])
+        ] + [
+            {
+                "index": [i],
+                "left_value": float(value1[i].item()),
+                "right_value": float(value2[i].item()),
+                "delta": float(valuediff[i].item()),
+                "type": "value"
+            }
+            for i in range(value1.shape[0])
         ]
-    
-    elif len(tensor1.shape) == 2:  # 2D tensor (linear layer weights)
-        if is_attention:
-            # For attention layers, preserve the 2D structure more explicitly
+    else:
+        diff = tensor2 - tensor1
+        
+        if len(tensor1.shape) == 1:  # 1D tensor (bias)
             return [
                 {
-                    "index": [i, j],
-                    "position": f"head_{i//64}_dim_{j}" if tensor1.shape[0] % 64 == 0 else f"row_{i}_col_{j}",
-                    "left_value": float(tensor1[i, j].item()),
-                    "right_value": float(tensor2[i, j].item()),
-                    "delta": float(diff[i, j].item())
+                    "index": [i],
+                    "left_value": float(tensor1[i].item()),
+                    "right_value": float(tensor2[i].item()),
+                    "delta": float(diff[i].item())
+                }
+                for i in range(tensor1.shape[0])
+            ]
+        
+        elif len(tensor1.shape) == 2:  # 2D tensor (linear layer weights)
+            if is_attention:
+                # For attention layers, preserve the 2D structure more explicitly
+                return [
+                    {
+                        "index": [i, j],
+                        "position": f"head_{i//64}_dim_{j}" if tensor1.shape[0] % 64 == 0 else f"row_{i}_col_{j}",
+                        "left_value": float(tensor1[i, j].item()),
+                        "right_value": float(tensor2[i, j].item()),
+                        "delta": float(diff[i, j].item())
+                    }
+                    for i in range(tensor1.shape[0])
+                    for j in range(tensor1.shape[1])
+                ]
+            else:
+                # Regular 2D tensor
+                return [
+                    {
+                        "index": [i, j],
+                        "left_value": float(tensor1[i, j].item()),
+                        "right_value": float(tensor2[i, j].item()),
+                        "delta": float(diff[i, j].item())
+                    }
+                    for i in range(tensor1.shape[0])
+                    for j in range(tensor1.shape[1])
+                ]
+        
+        elif len(tensor1.shape) == 3:  # 3D tensor
+            return [
+                {
+                    "index": [i, j, k],
+                    "left_value": float(tensor1[i, j, k].item()),
+                    "right_value": float(tensor2[i, j, k].item()),
+                    "delta": float(diff[i, j, k].item())
                 }
                 for i in range(tensor1.shape[0])
                 for j in range(tensor1.shape[1])
+                for k in range(tensor1.shape[2])
             ]
-        else:
-            # Regular 2D tensor
+        
+        elif len(tensor1.shape) == 4:  # 4D tensor (conv layers)
             return [
                 {
-                    "index": [i, j],
-                    "left_value": float(tensor1[i, j].item()),
-                    "right_value": float(tensor2[i, j].item()),
-                    "delta": float(diff[i, j].item())
+                    "index": [i, j, k, l],
+                    "left_value": float(tensor1[i, j, k, l].item()),
+                    "right_value": float(tensor2[i, j, k, l].item()),
+                    "delta": float(diff[i, j, k, l].item())
                 }
                 for i in range(tensor1.shape[0])
                 for j in range(tensor1.shape[1])
+                for k in range(tensor1.shape[2])
+                for l in range(tensor1.shape[3])
             ]
-    
-    elif len(tensor1.shape) == 3:  # 3D tensor
-        return [
-            {
-                "index": [i, j, k],
-                "left_value": float(tensor1[i, j, k].item()),
-                "right_value": float(tensor2[i, j, k].item()),
-                "delta": float(diff[i, j, k].item())
-            }
-            for i in range(tensor1.shape[0])
-            for j in range(tensor1.shape[1])
-            for k in range(tensor1.shape[2])
-        ]
-    
-    elif len(tensor1.shape) == 4:  # 4D tensor (conv layers)
-        return [
-            {
-                "index": [i, j, k, l],
-                "left_value": float(tensor1[i, j, k, l].item()),
-                "right_value": float(tensor2[i, j, k, l].item()),
-                "delta": float(diff[i, j, k, l].item())
-            }
-            for i in range(tensor1.shape[0])
-            for j in range(tensor1.shape[1])
-            for k in range(tensor1.shape[2])
-            for l in range(tensor1.shape[3])
-        ]
-    
-    else:  # Higher dimensional tensors - flatten with index tracking
-        indices = torch.nonzero(torch.ones_like(tensor1), as_tuple=False)
-        return [
-            {
-                "index": idx.tolist(),
-                "left_value": float(tensor1[tuple(idx)].item()),
-                "right_value": float(tensor2[tuple(idx)].item()),
-                "delta": float(diff[tuple(idx)].item())
-            }
-            for idx in indices
-        ]
-
+        
+        else:  # Higher dimensional tensors - flatten with index tracking
+            indices = torch.nonzero(torch.ones_like(tensor1), as_tuple=False)
+            return [
+                {
+                    "index": idx.tolist(),
+                    "left_value": float(tensor1[tuple(idx)].item()),
+                    "right_value": float(tensor2[tuple(idx)].item()),
+                    "delta": float(diff[tuple(idx)].item())
+                }
+                for idx in indices
+            ]
 
 def calculate_weight_changes(checkpoint1: Dict[str, torch.Tensor], 
                            checkpoint2: Dict[str, torch.Tensor]) -> Dict[str, Any]:
@@ -214,19 +343,17 @@ def calculate_weight_changes(checkpoint1: Dict[str, torch.Tensor],
         
         # Check if this is an attention layer
         is_attention = is_attention_layer(key)
+        is_fused = is_fused_attention(key)
         
         # Calculate difference for counting
         diff = tensor2 - tensor1
         
         # Create structured weight data
-        weights_data = create_weight_structure(tensor1, tensor2, is_attention)
+        weights_data = create_weight_structure(tensor1, tensor2, is_attention, is_fused)
         
         # Count changes
         num_changed = int(torch.sum(diff != 0).item())
         num_unchanged = int(torch.sum(diff == 0).item())
-        avg_delta = float(torch.mean(torch.abs(diff)).item())
-        max_delta = float(torch.max(torch.abs(diff)).item())
-        min_delta = float(torch.min(torch.abs(diff)).item())
         
         layer_data = {
             "shape": list(tensor1.shape),
@@ -234,13 +361,10 @@ def calculate_weight_changes(checkpoint1: Dict[str, torch.Tensor],
             "layer_type": "attention" if is_attention else "standard",
             "weights_changed": num_changed,
             "weights_unchanged": num_unchanged,
-            "avg_delta": avg_delta,
-            "max_delta": max_delta,
-            "min_delta": min_delta,
             "total_weights": int(tensor1.numel()),
             "weights": weights_data
         }
-        print(f"Layer {key}: {num_changed} weights changed, {num_unchanged} unchanged, {avg_delta} average change, {max_delta} max change, {min_delta} min change")
+        print(f"Layer {key}: {num_changed} weights changed, {num_unchanged} unchanged")
         changes[key] = layer_data
     
     return changes
