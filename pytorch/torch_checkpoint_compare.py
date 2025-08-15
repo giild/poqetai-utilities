@@ -97,6 +97,18 @@ def is_fused_attention(layer_name: str) -> bool:
     """
     return 'qkv' in layer_name.lower()
 
+def is_bias_layer(layer_name: str) -> bool:
+    """
+    Check if the layer name has bias
+
+    Args:
+        layer_name (str): _description_
+
+    Returns:
+        bool: _description_
+    """
+    return 'bias' in layer_name.lower()
+
 def unfuse_qkv_weights(fused_weight: torch.Tensor, fused_bias: Optional[torch.Tensor] = None,
     embed_dim: Optional[int] = None, num_heads: Optional[int] = None) -> Dict[str, torch.Tensor]:
     """
@@ -174,7 +186,8 @@ def unfuse_qkv_weights(fused_weight: torch.Tensor, fused_bias: Optional[torch.Te
     
     return result
     
-def create_weight_structure(tensor1: torch.Tensor, tensor2: torch.Tensor, is_attention: bool, is_fused:bool) -> list:
+def create_weight_structure(tensor1: torch.Tensor, tensor2: torch.Tensor, 
+                            is_attention: bool, is_fused:bool, is_bias:bool) -> list:
     """
     Create weight structure based on tensor dimensions and layer type.
     
@@ -186,8 +199,8 @@ def create_weight_structure(tensor1: torch.Tensor, tensor2: torch.Tensor, is_att
     Returns:
         List of weight comparison data maintaining tensor structure
     """
-    if is_attention and is_fused:
-        print(f" We need to check if the attention is using fused attention weights")
+    if is_attention and is_fused and not is_bias:
+        print(f" the attention is fused, we need to unfuse them.")
         unfuseddict1 = unfuse_qkv_weights(tensor1)
         unfuseddict2 = unfuse_qkv_weights(tensor2)
         query1 = unfuseddict1['query_weight']
@@ -199,33 +212,37 @@ def create_weight_structure(tensor1: torch.Tensor, tensor2: torch.Tensor, is_att
         querydiff = query2 - query1
         keydiff = key2 - key1
         valuediff = value2 - value1
+        print(f" unfused the qkv weights.")
         return [
             {
-                "index": [i],
-                "left_value": float(query1[i].item()),
-                "right_value": float(query2[i].item()),
-                "delta": float(querydiff[i].item()),
-                "type": "query"
+                "index": [i,j],
+                "type":"q",
+                "left_value": float(query1[i,j].item()),
+                "right_value": float(query2[i,j].item()),
+                "delta": float(querydiff[i,j].item())
             }
             for i in range(query1.shape[0])
-        ] + [
+            for j in range(query1.shape[1])
+        ], [
             {
-                "index": [i],
-                "left_value": float(key1[i].item()),
-                "right_value": float(key2[i].item()),
-                "delta": float(keydiff[i].item()),
-                "type": "key"
+                "index": [i,j],
+                "type":"k",
+                "left_value": float(key1[i,j].item()),
+                "right_value": float(key2[i,j].item()),
+                "delta": float(keydiff[i,j].item())
             }
             for i in range(key1.shape[0])
-        ] + [
+            for j in range(key1.shape[1])
+        ], [
             {
-                "index": [i],
-                "left_value": float(value1[i].item()),
-                "right_value": float(value2[i].item()),
-                "delta": float(valuediff[i].item()),
-                "type": "value"
+                "index": [i,j],
+                "type":"v",
+                "left_value": float(value1[i,j].item()),
+                "right_value": float(value2[i,j].item()),
+                "delta": float(valuediff[i,j].item())
             }
             for i in range(value1.shape[0])
+            for j in range(value1.shape[1])
         ]
     else:
         diff = tensor2 - tensor1
@@ -344,12 +361,13 @@ def calculate_weight_changes(checkpoint1: Dict[str, torch.Tensor],
         # Check if this is an attention layer
         is_attention = is_attention_layer(key)
         is_fused = is_fused_attention(key)
+        is_bias = is_bias_layer(key)
         
         # Calculate difference for counting
         diff = tensor2 - tensor1
         
         # Create structured weight data
-        weights_data = create_weight_structure(tensor1, tensor2, is_attention, is_fused)
+        weights_data = create_weight_structure(tensor1, tensor2, is_attention, is_fused, is_bias)
         
         # Count changes
         num_changed = int(torch.sum(diff != 0).item())
