@@ -216,7 +216,7 @@ def create_weight_structure(tensor1: torch.Tensor, tensor2: torch.Tensor,
         return [
             {
                 "index": [i,j],
-                "type":"q",
+                "faw":"q",
                 "left_value": float(query1[i,j].item()),
                 "right_value": float(query2[i,j].item()),
                 "delta": float(querydiff[i,j].item())
@@ -226,7 +226,7 @@ def create_weight_structure(tensor1: torch.Tensor, tensor2: torch.Tensor,
         ], [
             {
                 "index": [i,j],
-                "type":"k",
+                "faw":"k",
                 "left_value": float(key1[i,j].item()),
                 "right_value": float(key2[i,j].item()),
                 "delta": float(keydiff[i,j].item())
@@ -236,7 +236,7 @@ def create_weight_structure(tensor1: torch.Tensor, tensor2: torch.Tensor,
         ], [
             {
                 "index": [i,j],
-                "type":"v",
+                "faw":"v",
                 "left_value": float(value1[i,j].item()),
                 "right_value": float(value2[i,j].item()),
                 "delta": float(valuediff[i,j].item())
