@@ -7,7 +7,7 @@ import argparse
 
 class CommonAttentionFinder:
     def __init__(self, input_folder: str, output_folder: str, layer_name: str, 
-                 summary_file: str, similarity_threshold: float = 0.99):
+                 summary_file: str, similarity_threshold: float = 0.9999):
         """
         Initialize the common attention weight finder.
         
@@ -34,7 +34,9 @@ class CommonAttentionFinder:
         
         if not json_files:
             raise ValueError(f"No JSON files found in {self.input_folder}")
-        
+
+        # Sort files in ascending order by filename
+        json_files = sorted(json_files, key=lambda x: x.name)        
         print(f"Loading {len(json_files)} JSON files...")
         
         for json_file in json_files:
