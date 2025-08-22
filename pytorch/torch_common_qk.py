@@ -115,56 +115,62 @@ class CommonAttentionFinder:
     
     def find_common_vectors(self, all_vectors: Dict[str, np.ndarray]) -> List[Dict[str, Any]]:
         """
-        Find vectors that are common across ALL epochs.
+        Find vectors that repeat (appear in multiple epochs).
         
         Args:
             all_vectors: Dict with epoch names as keys and vector arrays as values
             
         Returns:
-            List of dictionaries containing common vector information
+            List of dictionaries containing information about vectors that repeat across epochs
         """
         if len(all_vectors) < 2:
             return []
         
         epoch_names = list(all_vectors.keys())
-        first_epoch = epoch_names[0]
-        first_vectors = all_vectors[first_epoch]
-        
         common_vectors = []
+        processed_vectors = set()  # Track vectors we've already processed
         
-        # For each vector in the first epoch
-        for i in range(len(first_vectors)):
-            vector = first_vectors[i]
-            is_common = True
-            epochs_with_vector = [first_epoch]
-            vector_indices = {first_epoch: i}
+        # Compare vectors across all epochs
+        for i, epoch1 in enumerate(epoch_names):
+            vectors1 = all_vectors[epoch1]
             
-            # Check if this vector exists in all other epochs
-            for other_epoch in epoch_names[1:]:
-                other_vectors = all_vectors[other_epoch]
-                found_match = False
+            for vec_idx1, vector1 in enumerate(vectors1):
+                # Create a unique identifier for this vector to avoid duplicates
+                vector_id = (epoch1, vec_idx1)
+                if vector_id in processed_vectors:
+                    continue
                 
-                # Look for a similar vector in this epoch
-                for j, other_vector in enumerate(other_vectors):
-                    if self.vectors_are_similar(vector, other_vector):
-                        epochs_with_vector.append(other_epoch)
-                        vector_indices[other_epoch] = j
-                        found_match = True
-                        break
+                # Find all occurrences of this vector across epochs
+                occurrences = [(epoch1, vec_idx1)]  # Include the original occurrence
                 
-                if not found_match:
-                    is_common = False
-                    break
-            
-            # If vector is found in all epochs, it's common
-            if is_common and len(epochs_with_vector) == len(epoch_names):
-                common_vectors.append({
-                    "vector_id": len(common_vectors),
-                    "reference_vector": vector.tolist(),
-                    "epochs": epochs_with_vector,
-                    "indices": vector_indices,
-                    "shape": list(vector.shape)
-                })
+                # Check remaining epochs
+                for j, epoch2 in enumerate(epoch_names[i:], i):
+                    if epoch2 == epoch1:
+                        continue  # Skip the same epoch
+                    
+                    vectors2 = all_vectors[epoch2]
+                    for vec_idx2, vector2 in enumerate(vectors2):
+                        if self.vectors_are_similar(vector1, vector2):
+                            occurrences.append((epoch2, vec_idx2))
+                
+                # If this vector appears in multiple epochs, it's a repeating vector
+                if len(occurrences) > 1:
+                    # Mark all occurrences as processed to avoid duplicates
+                    for occurrence in occurrences:
+                        processed_vectors.add(occurrence)
+                    
+                    # Create epochs and indices dictionaries
+                    epochs_with_vector = [occ[0] for occ in occurrences]
+                    vector_indices = {occ[0]: occ[1] for occ in occurrences}
+                    
+                    common_vectors.append({
+                        "vector_id": len(common_vectors),
+                        "reference_vector": vector1.tolist(),
+                        "epochs": epochs_with_vector,
+                        "indices": vector_indices,
+                        "shape": list(vector1.shape),
+                        "repeat_count": len(occurrences)
+                    })
         
         return common_vectors
     
