@@ -95,6 +95,7 @@ class CommonAttentionFinder:
     
     def vectors_are_similar(self, vec1: np.ndarray, vec2: np.ndarray) -> bool:
         """Check if two vectors are similar based on cosine similarity."""
+        tolerance = 1e-6
         if vec1.shape != vec2.shape:
             return False
         
@@ -107,11 +108,12 @@ class CommonAttentionFinder:
         norm1 = np.linalg.norm(v1_flat)
         norm2 = np.linalg.norm(v2_flat)
         
-        if norm1 == 0 or norm2 == 0:
-            return np.allclose(v1_flat, v2_flat, atol=1e-8)
+        # if norm1 == 0 or norm2 == 0:
+        #     return np.allclose(v1_flat, v2_flat, atol=1e-8)
         
-        cosine_sim = dot_product / (norm1 * norm2)
-        return cosine_sim >= self.similarity_threshold
+        # cosine_sim = dot_product / (norm1 * norm2)
+        # return cosine_sim >= self.similarity_threshold
+        return np.allclose(v1_flat, v2_flat, atol=tolerance, rtol=tolerance)
     
     def find_common_vectors(self, all_vectors: Dict[str, np.ndarray]) -> List[Dict[str, Any]]:
         """
