@@ -7,7 +7,7 @@ import argparse
 
 class CommonAttentionFinder:
     def __init__(self, input_folder: str, output_folder: str, layer_name: str, 
-                 summary_file: str, similarity_threshold: float = 0.9999):
+                 summary_file: str, similarity_threshold: float = 1e-6):
         """
         Initialize the common attention weight finder.
         
@@ -153,7 +153,7 @@ class CommonAttentionFinder:
                     
                     vectors2 = all_vectors[epoch2]
                     for vec_idx2, vector2 in enumerate(vectors2):
-                        similar_values = self.vectors_are_similar(vector1, vector2)
+                        similar_values = self.vectors_are_similar(vector1, vector2, self.similarity_threshold)
                         
                         # Check if there are similar values (length > 0)
                         if len(similar_values) > 0:
@@ -284,8 +284,8 @@ def main():
     parser.add_argument("output_folder", help="Path to output folder")
     parser.add_argument("layer_name", help="Name of the layer to analyze")
     parser.add_argument("summary_file", help="Name of the summary JSON file")
-    parser.add_argument("--threshold", type=float, default=0.99, 
-                       help="Similarity threshold (default: 0.99)")
+    parser.add_argument("--threshold", type=float, default=0.000001 
+                       help="Similarity threshold (default: 0.000001)")
     
     args = parser.parse_args()
     
