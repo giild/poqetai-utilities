@@ -114,6 +114,42 @@ class CommonAttentionFinder:
                 similar_values.append(float(val1))  # Use val1 as reference
         
         return similar_values
+
+    def vector_intersection(arr1, arr2, threshold):
+        """
+        Find the intersection of two numpy arrays with a given threshold for float comparison.
+        
+        Args:
+            arr1 (numpy.ndarray): First input array (will be flattened)
+            arr2 (numpy.ndarray): Second input array (will be flattened)
+            threshold (float): Threshold for considering two float values as equal
+            
+        Returns:
+            list: List of float values that are present in both arrays within the threshold
+        """
+        # Flatten the arrays
+        flat1 = arr1.flatten()
+        flat2 = arr2.flatten()
+        
+        intersection = []
+        
+        # For each value in the first array
+        for val1 in flat1:
+            # Check if there's a matching value in the second array within threshold
+            for val2 in flat2:
+                if abs(val1 - val2) <= threshold:
+                    # Add to intersection if not already present (within threshold)
+                    is_duplicate = False
+                    for existing in intersection:
+                        if abs(val1 - existing) <= threshold:
+                            is_duplicate = True
+                            break
+                    
+                    if not is_duplicate:
+                        intersection.append(float(val1))
+                    break  # Found a match, move to next val1
+        
+        return intersection
     
     def find_common_vectors(self, all_vectors: Dict[str, np.ndarray]) -> List[Dict[str, Any]]:
         """
@@ -153,7 +189,8 @@ class CommonAttentionFinder:
                     
                     vectors2 = all_vectors[epoch2]
                     for vec_idx2, vector2 in enumerate(vectors2):
-                        similar_values = self.vectors_are_similar(vector1, vector2, self.similarity_threshold)
+                        #similar_values = self.vectors_are_similar(vector1, vector2, self.similarity_threshold)
+                        similar_values = self.vector_intersection(vector1, vector2, self.similarity_threshold)
                         
                         # Check if there are similar values (length > 0)
                         if len(similar_values) > 0:
