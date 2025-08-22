@@ -93,27 +93,27 @@ class CommonAttentionFinder:
         
         return layer_weights
     
-    def vectors_are_similar(self, vec1: np.ndarray, vec2: np.ndarray) -> bool:
-        """Check if two vectors are similar based on cosine similarity."""
-        tolerance = 1e-6
+    def vectors_are_similar(self, vec1: np.ndarray, vec2: np.ndarray, tolerance: float = 1e-6) -> List[float]:
+        """Compare two vectors and return a list of values that are similar at the same indices."""
         if vec1.shape != vec2.shape:
-            return False
+            return []
         
-        # Flatten vectors
+        # Flatten vectors to handle multi-dimensional arrays
         v1_flat = vec1.flatten()
         v2_flat = vec2.flatten()
         
-        # Calculate cosine similarity
-        dot_product = np.dot(v1_flat, v2_flat)
-        norm1 = np.linalg.norm(v1_flat)
-        norm2 = np.linalg.norm(v2_flat)
+        similar_values = []
         
-        # if norm1 == 0 or norm2 == 0:
-        #     return np.allclose(v1_flat, v2_flat, atol=1e-8)
+        # Compare values element-wise and collect similar ones
+        for i in range(len(v1_flat)):
+            val1 = v1_flat[i]
+            val2 = v2_flat[i]
+            
+            # Check if values are within tolerance
+            if abs(val1 - val2) <= tolerance:
+                similar_values.append(float(val1))  # Use val1 as reference
         
-        # cosine_sim = dot_product / (norm1 * norm2)
-        # return cosine_sim >= self.similarity_threshold
-        return np.allclose(v1_flat, v2_flat, atol=tolerance, rtol=tolerance)
+        return similar_values
     
     def find_common_vectors(self, all_vectors: Dict[str, np.ndarray]) -> List[Dict[str, Any]]:
         """
@@ -144,6 +144,7 @@ class CommonAttentionFinder:
                 
                 # Find all occurrences of this vector across epochs
                 occurrences = [(epoch1, vec_idx1)]  # Include the original occurrence
+                similar_values_list = []
                 
                 # Check remaining epochs
                 for j, epoch2 in enumerate(epoch_names[i:], i):
@@ -152,8 +153,17 @@ class CommonAttentionFinder:
                     
                     vectors2 = all_vectors[epoch2]
                     for vec_idx2, vector2 in enumerate(vectors2):
-                        if self.vectors_are_similar(vector1, vector2):
+                        similar_values = self.vectors_are_similar(vector1, vector2)
+                        
+                        # Check if there are similar values (length > 0)
+                        if len(similar_values) > 0:
                             occurrences.append((epoch2, vec_idx2))
+                            similar_values_list.append({
+                                "epoch": epoch2,
+                                "vector_index": vec_idx2,
+                                "similar_values": similar_values,
+                                "similarity_count": len(similar_values)
+                            })
                 
                 # If this vector appears in multiple epochs, it's a repeating vector
                 if len(occurrences) > 1:
@@ -171,7 +181,8 @@ class CommonAttentionFinder:
                         "epochs": epochs_with_vector,
                         "indices": vector_indices,
                         "shape": list(vector1.shape),
-                        "repeat_count": len(occurrences)
+                        "repeat_count": len(occurrences),
+                        "similar_values_details": similar_values_list
                     })
         
         return common_vectors
