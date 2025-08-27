@@ -124,7 +124,7 @@ def find_common_values(all_values: Dict[str, List[List[float]]], threshold: floa
                 continue
             
             if is_common:
-                common_indices.append(((row_idx, col_idx), first_value, len(values_at_position)))
+                common_indices.append(((row_idx, col_idx), first_value, similar_count))
     
     return common_indices
 

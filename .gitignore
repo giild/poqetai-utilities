@@ -1,5 +1,5 @@
 **/*.h5
 **/*.pth
-**/*.safetensor
+**/*.safetensors
 **/*.csv
 **/*.json
