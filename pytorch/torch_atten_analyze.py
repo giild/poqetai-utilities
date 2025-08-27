@@ -21,6 +21,7 @@ from collections import defaultdict, Counter
 import numpy as np
 from typing import Dict, List, Set, Tuple, Any
 
+counthreshold = 2 # Minimum number of epochs a value must appear in to be considered "common"
 
 def load_json_files(folder_path: str) -> List[Dict]:
     """
@@ -67,7 +68,7 @@ def load_json_files(folder_path: str) -> List[Dict]:
     return json_files
 
 
-def find_common_values(all_values: Dict[str, List[List[float]]], threshold: float = 1e-6) -> List[Tuple[Tuple[int, int], float, int]]:
+def find_common_values(all_values: Dict[str, List[List[float]]], threshold: float = 1e-6, countlimit: int=2) -> List[Tuple[Tuple[int, int], float, int]]:
     """
     Find common values across all epochs with their 2D indices and occurrence counts.
     
@@ -114,10 +115,11 @@ def find_common_values(all_values: Dict[str, List[List[float]]], threshold: floa
             if len(values_at_position) < 2:
                 continue
                 
-            # Check if all values at this position are similar (within threshold)
+            # Check if multiple values at this position are similar (within threshold)
             first_value = values_at_position[0]
             try:
-                is_common = all(abs(val - first_value) <= threshold for val in values_at_position)
+                similar_count = sum(1 for val in values_at_position if abs(val - first_value) <= threshold)
+                is_common = similar_count >= countlimit  # At least 2 epochs have similar values
             except (ValueError, TypeError):
                 continue
             
@@ -127,7 +129,7 @@ def find_common_values(all_values: Dict[str, List[List[float]]], threshold: floa
     return common_indices
 
 
-def analyze_attention_weights(json_files: List[Dict], layer_name: str) -> Dict[str, Any]:
+def analyze_attention_weights(json_files: List[Dict], layer_name: str, count:int) -> Dict[str, Any]:
     """
     Analyze attention weights to find common values in query and key.
     
@@ -178,8 +180,8 @@ def analyze_attention_weights(json_files: List[Dict], layer_name: str) -> Dict[s
     print(f"Analyzing {len(valid_epochs)} valid epochs for layer '{layer_name}'")
     
     # Find common values
-    common_query = find_common_values(query_values_by_epoch)
-    common_key = find_common_values(key_values_by_epoch)
+    common_query = find_common_values(query_values_by_epoch, countlimit=count)
+    common_key = find_common_values(key_values_by_epoch, countlimit=count)
     
     # Calculate statistics
     first_valid_query = next(iter(query_values_by_epoch.values())) if query_values_by_epoch else []
@@ -293,15 +295,23 @@ Example usage:
                        help='Name of the layer to analyze (e.g., blocks.0.attn.qkv.weight)')
     parser.add_argument('output_file', 
                        help='Path to output summary file (JSON format)')
+    parser.add_argument('--count_threshold', type=int, default=2,
+                       help='Count threshold for considering values as common (default: 2 )')
     
     args = parser.parse_args()
     
     try:
+        if args.count_threshold > 2:
+            counthreshold = args.count_threshold
+            print(f"Using count threshold: {counthreshold}")
+        else:
+            counthreshold = 2
+        
         print("Loading JSON files...")
         json_files = load_json_files(args.json_folder)
         
         print(f"Analyzing layer: {args.layer_name}")
-        results = analyze_attention_weights(json_files, args.layer_name)
+        results = analyze_attention_weights(json_files, args.layer_name, counthreshold)
         
         print("Saving summary...")
         save_summary(results, args.output_file)
