@@ -18,3 +18,4 @@ dependencies:
       - tensorflow_datasets
       - keras_cv==0.3.5
       - safetensors
+      - matplotlib
