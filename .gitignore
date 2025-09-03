@@ -3,3 +3,4 @@
 **/*.safetensors
 **/*.csv
 **/*.json
+graph/
