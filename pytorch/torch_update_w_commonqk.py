@@ -98,9 +98,13 @@ def modify_attention_weights(state_dict, json_data):
             actual_row_idx = query_start + row_idx
             
             if actual_row_idx < original_weight.shape[0] and col_idx < original_weight.shape[1]:
-                modified_weight[actual_row_idx, col_idx] = new_value
-                modifications_made += 1
-                print(f"Modified query weight at ({actual_row_idx}, {col_idx}) = {new_value}")
+                if modified_weight[actual_row_idx, col_idx] != new_value:
+                    # Only modify if the value is different
+                    modified_weight[actual_row_idx, col_idx] = new_value
+                    modifications_made += 1
+                    print(f"Modified query weight at ({actual_row_idx}, {col_idx}) = {new_value}")
+                else:
+                    print(f"-- No change for query weight at ({actual_row_idx}, {col_idx}), already {new_value}")
             else:
                 print(f"Warning: Query index ({actual_row_idx}, {col_idx}) out of bounds")
     
@@ -115,9 +119,13 @@ def modify_attention_weights(state_dict, json_data):
             actual_row_idx = key_start + row_idx
             
             if actual_row_idx < original_weight.shape[0] and col_idx < original_weight.shape[1]:
-                modified_weight[actual_row_idx, col_idx] = new_value
-                modifications_made += 1
-                print(f"Modified key weight at ({actual_row_idx}, {col_idx}) = {new_value}")
+                if modified_weight[actual_row_idx, col_idx] != new_value:
+                    # Only modify if the value is different
+                    modified_weight[actual_row_idx, col_idx] = new_value
+                    modifications_made += 1
+                    print(f"Modified key weight at ({actual_row_idx}, {col_idx}) = {new_value}")
+                else:
+                    print(f"-- No change for key weight at ({actual_row_idx}, {col_idx}), already {new_value}")
             else:
                 print(f"Warning: Key index ({actual_row_idx}, {col_idx}) out of bounds")
     
