@@ -54,7 +54,7 @@ def get_model_state_dict(checkpoint):
         # Direct model state dict
         return checkpoint
 
-def modify_attention_weights(state_dict, json_data, prune=False):
+def modify_attention_weights(state_dict, json_data, prune: bool):
     """
     Modify attention weights based on the JSON data.
     Assumes fused QKV format where weights are concatenated as [query, key, value].
