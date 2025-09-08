@@ -194,12 +194,12 @@ def main():
         action="store_true", 
         help="Enable verbose output"
     )
-    prune = False
+    prunewt = False
     args = parser.parse_args()
-    print(f"- prune setting {args.p} -")
     
     if args.p == 'True':
-        prune = True
+        prunewt = True
+    print(f"- prune setting {prunewt} -")
 
     # Validate input files exist
     if not Path(args.checkpoint).exists():
@@ -225,7 +225,7 @@ def main():
         print(f"Total key modifications: {len(json_data['common_values'].get('key', []))}")
     
     print("Modifying attention weights...")
-    success = modify_attention_weights(state_dict, json_data, prune=prune)
+    success = modify_attention_weights(state_dict, json_data, prune=prunewt)
     
     if success:
         print(f"Saving modified model: {args.output}")
