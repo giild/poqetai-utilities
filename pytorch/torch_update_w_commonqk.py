@@ -198,7 +198,7 @@ def main():
     args = parser.parse_args()
     print(f"- prune setting {args.p} -")
     
-    if args.p.lower() in ['true']:
+    if args.p == 'True':
         prune = True
 
     # Validate input files exist
