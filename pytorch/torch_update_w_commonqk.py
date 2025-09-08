@@ -54,7 +54,7 @@ def get_model_state_dict(checkpoint):
         # Direct model state dict
         return checkpoint
 
-def modify_attention_weights(state_dict, json_data):
+def modify_attention_weights(state_dict, json_data, prune=False):
     """
     Modify attention weights based on the JSON data.
     Assumes fused QKV format where weights are concatenated as [query, key, value].
@@ -194,7 +194,7 @@ def main():
         action="store_true", 
         help="Enable verbose output"
     )
-    
+    prune = False
     args = parser.parse_args()
     print(f"- prune setting {args.p} -")
     
@@ -225,7 +225,7 @@ def main():
         print(f"Total key modifications: {len(json_data['common_values'].get('key', []))}")
     
     print("Modifying attention weights...")
-    success = modify_attention_weights(state_dict, json_data)
+    success = modify_attention_weights(state_dict, json_data, prune=prune)
     
     if success:
         print(f"Saving modified model: {args.output}")
