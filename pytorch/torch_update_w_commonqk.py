@@ -102,7 +102,7 @@ def modify_attention_weights(state_dict, json_data, prune: bool):
             if actual_row_idx < original_weight.shape[0] and col_idx < original_weight.shape[1]:
                 if modified_weight[actual_row_idx, col_idx] != new_value:
                     # Only modify if the value is different
-                    if prune:
+                    if prune == True:
                         modified_weight[actual_row_idx, col_idx] = 0.0
                     else:
                         modified_weight[actual_row_idx, col_idx] = new_value
@@ -126,7 +126,7 @@ def modify_attention_weights(state_dict, json_data, prune: bool):
             if actual_row_idx < original_weight.shape[0] and col_idx < original_weight.shape[1]:
                 if modified_weight[actual_row_idx, col_idx] != new_value:
                     # Only modify if the value is different
-                    if prune:
+                    if prune == True:
                         modified_weight[actual_row_idx, col_idx] = 0.0
                     else:
                         modified_weight[actual_row_idx, col_idx] = new_value
