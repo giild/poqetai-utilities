@@ -10,6 +10,8 @@ import argparse
 import sys
 from pathlib import Path
 
+prune = False
+
 def load_json_data(json_file):
     """Load and parse the JSON file containing weight modifications."""
     try:
@@ -100,9 +102,12 @@ def modify_attention_weights(state_dict, json_data):
             if actual_row_idx < original_weight.shape[0] and col_idx < original_weight.shape[1]:
                 if modified_weight[actual_row_idx, col_idx] != new_value:
                     # Only modify if the value is different
-                    modified_weight[actual_row_idx, col_idx] = new_value
-                    modifications_made += 1
-                    print(f"Modified query weight at ({actual_row_idx}, {col_idx}) = {new_value}")
+                    if prune:
+                        modified_weight[actual_row_idx, col_idx] = 0.0
+                    else:
+                        modified_weight[actual_row_idx, col_idx] = new_value
+                        modifications_made += 1
+                        print(f"Modified query weight at ({actual_row_idx}, {col_idx}) = {new_value}")
                 else:
                     print(f"-- No change for query weight at ({actual_row_idx}, {col_idx}), already {new_value}")
             else:
@@ -121,9 +126,12 @@ def modify_attention_weights(state_dict, json_data):
             if actual_row_idx < original_weight.shape[0] and col_idx < original_weight.shape[1]:
                 if modified_weight[actual_row_idx, col_idx] != new_value:
                     # Only modify if the value is different
-                    modified_weight[actual_row_idx, col_idx] = new_value
-                    modifications_made += 1
-                    print(f"Modified key weight at ({actual_row_idx}, {col_idx}) = {new_value}")
+                    if prune:
+                        modified_weight[actual_row_idx, col_idx] = 0.0
+                    else:
+                        modified_weight[actual_row_idx, col_idx] = new_value
+                        modifications_made += 1
+                        print(f"Modified key weight at ({actual_row_idx}, {col_idx}) = {new_value}")
                 else:
                     print(f"-- No change for key weight at ({actual_row_idx}, {col_idx}), already {new_value}")
             else:
@@ -177,6 +185,11 @@ def main():
         help="Path for the output modified model file"
     )
     parser.add_argument(
+        "p",
+        help="Prune the query and keys",
+        default="False"
+    )
+    parser.add_argument(
         "--verbose", "-v", 
         action="store_true", 
         help="Enable verbose output"
@@ -184,6 +197,9 @@ def main():
     
     args = parser.parse_args()
     
+    if args.p.lower() in ['true']:
+        prune = True
+
     # Validate input files exist
     if not Path(args.checkpoint).exists():
         print(f"Error: Checkpoint file '{args.checkpoint}' does not exist.")
