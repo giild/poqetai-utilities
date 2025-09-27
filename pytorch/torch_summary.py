@@ -7,6 +7,7 @@ import torch.optim as optim
 import torchvision
 import torchvision.transforms as transforms
 from torchsummary import summary
+from ultralytics import YOLO
 
 def main():
     """
