@@ -4,6 +4,8 @@ import glob
 from pathlib import Path
 import torch_extract_attention
 
+startIndex = 1
+
 def process_checkpoints(checkpoint_folder, output_directory):
     """
     Process all PyTorch checkpoint files in a folder using torch_extract_attention.py
@@ -36,7 +38,7 @@ def process_checkpoints(checkpoint_folder, output_directory):
     print(f"Found {len(checkpoint_files)} checkpoint files")
     
     # Process each checkpoint file
-    for i, checkpoint_file in enumerate(checkpoint_files, 1):
+    for i, checkpoint_file in enumerate(checkpoint_files, startIndex):
         checkpoint_name = Path(checkpoint_file).name
         checkpoint_stem = Path(checkpoint_file).stem  # filename without extension
         
@@ -62,6 +64,8 @@ def main():
         checkpoint_folder = sys.argv[1]
     if len(sys.argv) >= 3:
         output_directory = sys.argv[2]
+    if len(sys.argv) >= 4:
+        startIndex = int(sys.argv[3])
     
     print(f"Checkpoint folder: {checkpoint_folder}")
     print(f"Output directory: {output_directory}")
