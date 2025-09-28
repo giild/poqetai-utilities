@@ -40,7 +40,7 @@ def process_checkpoints(checkpoint_folder, output_directory):
     print(f"Found {len(checkpoint_files)} checkpoint files")
     
     # Process each checkpoint file
-    for i, checkpoint_file in enumerate(checkpoint_files, startIndex):
+    for i, checkpoint_file in enumerate(checkpoint_files, start=startIndex):
         checkpoint_name = Path(checkpoint_file).name
         checkpoint_stem = Path(checkpoint_file).stem  # filename without extension
         
