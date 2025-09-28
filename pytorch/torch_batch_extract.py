@@ -35,6 +35,8 @@ def process_checkpoints(checkpoint_folder, output_directory):
         print(f"Looked for extensions: {', '.join(checkpoint_patterns)}")
         return
     
+    # sort the files
+    checkpoint_files.sort()
     print(f"Found {len(checkpoint_files)} checkpoint files")
     
     # Process each checkpoint file
