@@ -271,7 +271,7 @@ def main():
     parser.add_argument(
         "checkpoint1", 
         type=str, 
-        help="Path to the first checkpoint file (.safetensors)"
+        help="Path to the first checkpoint file (.pt)"
     )
     parser.add_argument(
         "outputdir", 

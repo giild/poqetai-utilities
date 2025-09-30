@@ -66,6 +66,7 @@ def sort_keys(keys: list) -> list:
 def loadTorchToDict(filename):
     modeldata = torch.load(filename, weights_only=False, map_location='cpu')
     modeldata = modeldata['ema']
+    modeldata = modeldata.state_dict()
     return modeldata
 
 def is_attention_layer(layer_name: str) -> bool:
@@ -202,49 +203,49 @@ def create_weight_structure(tensor1: torch.Tensor, tensor2: torch.Tensor,
     """
     if is_attention and is_fused and not is_bias:
         print(f" the attention is fused, we need to unfuse them.")
-        unfuseddict1 = unfuse_qkv_weights(tensor1)
-        unfuseddict2 = unfuse_qkv_weights(tensor2)
-        query1 = unfuseddict1['query_weight']
-        key1 = unfuseddict1['key_weight']
-        value1 = unfuseddict1['value_weight']
-        query2 = unfuseddict2['query_weight']
-        key2 = unfuseddict2['key_weight']
-        value2 = unfuseddict2['value_weight']
-        querydiff = query2 - query1
-        keydiff = key2 - key1
-        valuediff = value2 - value1
-        print(f" unfused the qkv weights.")
-        return [
-            {
-                "index": [i,j],
-                "faw":"q",
-                "left_value": float(query1[i,j].item()),
-                "right_value": float(query2[i,j].item()),
-                "delta": float(querydiff[i,j].item())
-            }
-            for i in range(query1.shape[0])
-            for j in range(query1.shape[1])
-        ], [
-            {
-                "index": [i,j],
-                "faw":"k",
-                "left_value": float(key1[i,j].item()),
-                "right_value": float(key2[i,j].item()),
-                "delta": float(keydiff[i,j].item())
-            }
-            for i in range(key1.shape[0])
-            for j in range(key1.shape[1])
-        ], [
-            {
-                "index": [i,j],
-                "faw":"v",
-                "left_value": float(value1[i,j].item()),
-                "right_value": float(value2[i,j].item()),
-                "delta": float(valuediff[i,j].item())
-            }
-            for i in range(value1.shape[0])
-            for j in range(value1.shape[1])
-        ]
+        # unfuseddict1 = unfuse_qkv_weights(tensor1)
+        # unfuseddict2 = unfuse_qkv_weights(tensor2)
+        # query1 = unfuseddict1['query_weight']
+        # key1 = unfuseddict1['key_weight']
+        # value1 = unfuseddict1['value_weight']
+        # query2 = unfuseddict2['query_weight']
+        # key2 = unfuseddict2['key_weight']
+        # value2 = unfuseddict2['value_weight']
+        # querydiff = query2 - query1
+        # keydiff = key2 - key1
+        # valuediff = value2 - value1
+        # print(f" unfused the qkv weights.")
+        # return [
+        #     {
+        #         "index": [i,j],
+        #         "faw":"q",
+        #         "left_value": float(query1[i,j].item()),
+        #         "right_value": float(query2[i,j].item()),
+        #         "delta": float(querydiff[i,j].item())
+        #     }
+        #     for i in range(query1.shape[0])
+        #     for j in range(query1.shape[1])
+        # ], [
+        #     {
+        #         "index": [i,j],
+        #         "faw":"k",
+        #         "left_value": float(key1[i,j].item()),
+        #         "right_value": float(key2[i,j].item()),
+        #         "delta": float(keydiff[i,j].item())
+        #     }
+        #     for i in range(key1.shape[0])
+        #     for j in range(key1.shape[1])
+        # ], [
+        #     {
+        #         "index": [i,j],
+        #         "faw":"v",
+        #         "left_value": float(value1[i,j].item()),
+        #         "right_value": float(value2[i,j].item()),
+        #         "delta": float(valuediff[i,j].item())
+        #     }
+        #     for i in range(value1.shape[0])
+        #     for j in range(value1.shape[1])
+        # ]
     else:
         diff = tensor2 - tensor1
         

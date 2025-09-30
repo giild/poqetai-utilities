@@ -31,6 +31,8 @@ def printSummary(model, filename):
     model = model['ema']
     try:
         summary(model)
+        statedict = model.state_dict()
+        print(f"State Dict Keys: {statedict.keys()}")
     except Exception as e:
         print(f"Summary: {model.keys()}")
 
