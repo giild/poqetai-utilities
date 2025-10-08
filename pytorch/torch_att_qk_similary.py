@@ -230,7 +230,7 @@ def main():
         common_weights = comparer.find_common_weights()
         
         # Display results
-        #comparer.print_results(common_weights)
+        comparer.print_results(common_weights)
         
         # Save results
         comparer.save_results(common_weights, args.output)
