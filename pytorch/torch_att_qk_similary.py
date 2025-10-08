@@ -21,6 +21,7 @@ class AttentionWeightComparer:
     def load_json_files(self) -> Dict[str, Any]:
         """Load all JSON files from the specified folder."""
         json_files = list(self.folder_path.glob("*.json"))
+        json_files.sort()
         
         if not json_files:
             raise ValueError(f"No JSON files found in {self.folder_path}")
