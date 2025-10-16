@@ -11,8 +11,6 @@ def load_json_data(json_path):
 
 def loadTorchToDict(filename):
     modeldata = torch.load(filename, weights_only=False, map_location='cpu')
-    modeldata = modeldata['ema']
-    modeldata = modeldata.state_dict()
     return modeldata
 
 def modify_weights(checkpoint_path, json_data, output_folder, output_filename):
@@ -27,20 +25,10 @@ def modify_weights(checkpoint_path, json_data, output_folder, output_filename):
     """
     # Load the checkpoint
     print(f"Loading checkpoint from: {checkpoint_path}")
-    checkpoint = loadTorchToDict(checkpoint_path)
-    
-    # Handle different checkpoint formats
-    if isinstance(checkpoint, dict) and 'model' in checkpoint:
-        model_state = checkpoint['model']
-        if hasattr(model_state, 'state_dict'):
-            state_dict = model_state.state_dict()
-        else:
-            state_dict = model_state
-    elif isinstance(checkpoint, dict) and 'state_dict' in checkpoint:
-        state_dict = checkpoint['state_dict']
-    else:
-        state_dict = checkpoint
-    
+    modeldata = loadTorchToDict(checkpoint_path)
+    checkpoint = modeldata['ema']
+    state_dict = checkpoint.state_dict()
+        
     # Track statistics
     total_weights_modified = 0
     layers_modified = 0
@@ -86,14 +74,9 @@ def modify_weights(checkpoint_path, json_data, output_folder, output_filename):
     output_path.parent.mkdir(parents=True, exist_ok=True)
     
     # Save in the same format as loaded
-    if isinstance(checkpoint, dict) and 'model' in checkpoint:
-        checkpoint['model'] = state_dict if isinstance(checkpoint['model'], dict) else checkpoint['model']
-    elif isinstance(checkpoint, dict) and 'state_dict' in checkpoint:
-        checkpoint['state_dict'] = state_dict
-    else:
-        checkpoint = state_dict
+    modeldata['ema'] = state_dict
     
-    torch.save(checkpoint, output_path)
+    torch.save(modeldata, output_path)
     
     print(f"\n=== Modification Summary ===")
     print(f"Total weights modified: {total_weights_modified}")
