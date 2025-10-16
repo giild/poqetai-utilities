@@ -65,7 +65,7 @@ def sort_keys(keys: list) -> list:
     return sorted(keys, key=sort_key)
 
 def loadTorchToDict(filename):
-    modeldata = torch.load(filename, weights_only=False)
+    modeldata = torch.load(filename, weights_only=False, map_location='cpu')
     return modeldata
 
 def is_attention_layer(layer_name: str) -> bool:
