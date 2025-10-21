@@ -4,3 +4,4 @@
 **/*.csv
 **/*.json
 graph/
+yolov12ckpt/
