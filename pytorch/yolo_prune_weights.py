@@ -74,7 +74,7 @@ def modify_weights(checkpoint_path, json_data, output_folder, output_filename):
     output_path.parent.mkdir(parents=True, exist_ok=True)
     
     # Save in the same format as loaded
-    modeldata['ema'] = state_dict
+    modeldata['state_dict'] = state_dict
     
     torch.save(modeldata, output_path)
     
