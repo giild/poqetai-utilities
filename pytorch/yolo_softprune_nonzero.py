@@ -7,7 +7,7 @@ from pathlib import Path
 def load_checkpoint(checkpoint_path):
     """Load PyTorch checkpoint file."""
     print(f"Loading checkpoint: {checkpoint_path}")
-    checkpoint = torch.load(checkpoint_path, map_location='cpu')
+    checkpoint = torch.load(checkpoint_path, weights_only=False, map_location='cpu')
     return checkpoint
 
 def load_json_analysis(json_path):
