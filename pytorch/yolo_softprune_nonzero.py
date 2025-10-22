@@ -43,21 +43,26 @@ def modify_parameters(checkpoint, analysis, threshold):
         
         # Get the parameter tensor
         param_tensor = state_dict[layer_name]
-        weights_data = layer_info.get('weights', [])
-        
-        layer_had_modifications = False
-        
-        for weight_info in weights_data:
-            delta = abs(weight_info['delta'])
+        # check if the layernane has attn string and skip it. the analysis doesn't have attn layer yet
+        if 'attn' not in layer_name:
+            weights_data = layer_info.get('weights', [])
+            print(f"Processing layer: {layer_name} with {len(weights_data)} weights")
             
-            # Check if delta is non-zero and below threshold
-            if 0 < delta < threshold:
-                index = tuple(weight_info['index'])
+            layer_had_modifications = False
+            
+            for weight_info in weights_data:
+                delta = abs(weight_info['delta'])
                 
-                # Set this weight to 0
-                param_tensor[index] = 0.0
-                modifications_count += 1
-                layer_had_modifications = True
+                # Check if delta is non-zero and below threshold
+                if delta > 0:
+                    index = tuple(weight_info['index'])
+                    
+                    # check the left_value is less than threshold
+                    if weight_info['left_value'] < threshold:
+                        # Set this weight to 0
+                        param_tensor[index] = 0.0
+                        modifications_count += 1
+                        layer_had_modifications = True
 
         if layer_had_modifications:
             layers_modified += 1
@@ -65,6 +70,8 @@ def modify_parameters(checkpoint, analysis, threshold):
     print(f"\nModifications applied:")
     print(f"  Total weights set to 0: {modifications_count}")
     print(f"  Layers modified: {layers_modified}")
+    print(f"  Threshold used: {threshold}")
+    checkpoint['state_dict'] = state_dict
 
     return checkpoint, modifications_count, layers_modified
 
