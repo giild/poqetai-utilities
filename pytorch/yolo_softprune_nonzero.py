@@ -58,6 +58,7 @@ def modify_parameters(checkpoint, analysis, threshold):
                     index = tuple(weight_info['index'])
                     
                     # check the left_value is less than threshold
+                    # we might to get absolute value
                     if weight_info['left_value'] < threshold:
                         # Set this weight to 0
                         param_tensor[index] = 0.0
