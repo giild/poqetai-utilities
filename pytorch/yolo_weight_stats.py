@@ -59,7 +59,7 @@ def analyze_checkpoint(checkpoint_path):
     print(f"Loading checkpoint from: {checkpoint_path}")
     
     # Load checkpoint
-    checkpoint = torch.load(checkpoint_path, map_location='cpu')
+    checkpoint = torch.load(checkpoint_path, weights_only=False, map_location='cpu')
     
     # Extract model weights (handle different checkpoint formats)
     if 'ema' in checkpoint:
