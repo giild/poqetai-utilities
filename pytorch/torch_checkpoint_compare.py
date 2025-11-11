@@ -15,36 +15,7 @@ from typing import Dict, Any, Tuple, Optional
 import numpy as np
 from safetensors import safe_open
 import torch
-
-def extract_layer_number(key: str) -> tuple:
-    """
-    Extract layer number from key for sorting purposes.
-    
-    Args:
-        key: Layer key name
-        
-    Returns:
-        Tuple of (prefix, layer_number, suffix) for sorting
-    """
-    # Look for patterns like "layer.12", "layers.5", "transformer.h.8", etc.
-    patterns = [
-        r'(.*)layer\.(\d+)(.*)',
-        r'(.*)layers\.(\d+)(.*)',
-        r'(.*)transformer\.h\.(\d+)(.*)',
-        r'(.*)block\.(\d+)(.*)',
-        r'(.*)encoder\.layer\.(\d+)(.*)',
-        r'(.*)decoder\.layer\.(\d+)(.*)'
-    ]
-    
-    for pattern in patterns:
-        key = key.replace("_", ".")  # Normalize keys with underscores
-        match = re.match(pattern, key, re.IGNORECASE)
-        if match:
-            prefix, layer_num, suffix = match.groups()
-            return (prefix, int(layer_num), suffix)
-    
-    # If no layer number found, return the key as is for alphabetical sorting
-    return (key, -1, "")
+import torch_utils
 
 def sort_keys(keys: list) -> list:
     """
@@ -57,7 +28,7 @@ def sort_keys(keys: list) -> list:
         Sorted list of keys
     """
     def sort_key(key):
-        prefix, layer_num, suffix = extract_layer_number(key)
+        prefix, layer_num, suffix = torch_utils.extract_layer_number(key)
         # Sort first by prefix, then by layer number, then by suffix
         return (prefix, layer_num, suffix)
     
