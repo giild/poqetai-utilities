@@ -9,6 +9,7 @@ import torch
 import argparse
 import sys
 from pathlib import Path
+import torch_utils
 
 prune = False
 
@@ -28,7 +29,7 @@ def load_json_data(json_file):
 def load_checkpoint(checkpoint_file):
     """Load the PyTorch checkpoint."""
     try:
-        checkpoint = torch.load(checkpoint_file, map_location='cpu')
+        checkpoint = torch_utils.load_torch_cpu(checkpoint_file)
         return checkpoint
     except FileNotFoundError:
         print(f"Error: Checkpoint file '{checkpoint_file}' not found.")
